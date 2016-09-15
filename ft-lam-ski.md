@@ -10,7 +10,7 @@
 
     lam :: ... => Next repr a b -> repr (a -> b)
 
-既然挖洞，我们就可以对这个变量进行抽象得到一个函数 `h`。`lam { [x :: a] E } = { \x -> E }`
+既然挖洞，我们就可以对这个变量进行抽象得到一个函数 `h`。`lam { [x :: a] E } = { \(x :: a) -> E }`
 
     instance ... => Language (Next repr a)
 
@@ -18,7 +18,7 @@
 
     var :: ... => Next repr a a
 
-既然绑定了这个变量，我们需要能把这个变量拿到。`var = { [x] x }`
+既然绑定了这个变量，我们需要能把这个变量拿到。`var = { [x :: a] x }`
 
     conv :: ... => repr b -> Next repr a b
 
