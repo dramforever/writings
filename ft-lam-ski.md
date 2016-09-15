@@ -48,7 +48,7 @@
 - `i = \x -> x`
 - `s (\x -> m) (\x -> n) = (\x -> m n)` （`m` `n` 中可以出现 在 "`\x ->`" 部分绑定的 `x`）
 
-分别对应三个情况，不就好了么？
+从左往右看，分别对应三个情况，不就好了么？
 
 注意到 `s` `k` `i` 都可以直接 `conv` 到 `Next`。
 
@@ -73,8 +73,8 @@
 
 测试一下
 
-        c :: (SKI repr) => repr ((a -> b -> c) -> b -> a -> c)
-        c = lam (lam (lam (app (app (conv $ conv var) var) $ conv var)))
+    c :: (SKI repr) => repr ((a -> b -> c) -> b -> a -> c)
+    c = lam (lam (lam (app (app (conv $ conv var) var) $ conv var)))
 
 这里的 `conv` `var` 什么的我好晕啊。。什么奇怪的东西
 
@@ -84,21 +84,21 @@ Why?
 
 > RTFT (Read The Types)
 
-        ghci> :t var
-        var :: SKI repr => Next repr a a
-        
-        ghci> :t lam var
-        lam var :: SKI repr => repr (b -> b)
-        
-        ghci> :t lam (conv var)  -- *
-        lam (conv var) :: SKI repr => Next repr b (a -> b)
-        
-        ghci> :t lam (lam (conv var))
-        lam (lam (conv var)) :: SKI repr => repr (b -> a -> b)
+    ghci> :t var
+    var :: SKI repr => Next repr a a
+    
+    ghci> :t lam var
+    lam var :: SKI repr => repr (b -> b)
+    
+    ghci> :t lam (conv var)  -- *
+    lam (conv var) :: SKI repr => Next repr b (a -> b)
+    
+    ghci> :t lam (lam (conv var))
+    lam (lam (conv var)) :: SKI repr => repr (b -> a -> b)
 
 注意标 `*` 的第三个。这里的 var 在哪里？它在 `lam` 外面。还记得 `conv` 么？
 
-        conv {E} = {[x :: a] E}
+    conv {E} = {[x :: a] E}
 
 本质上来说，`conv` 一层，跳过一个 `lam`。标 `*` 的那个里面跳过了一个 `lam`，所以是往外第二个 `lam` 的 `var`。如果有 27 个 `conv`，就会跳过 27 个 `lam`，就会是从里往外第 28 个 `lam` 的 `var`。
 
