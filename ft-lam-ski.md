@@ -32,9 +32,9 @@
 
 于是
 
-    abstract :: Next repr a b -> repr (a -> b)
+    lam :: Next repr a b -> repr (a -> b)
 
-我们 cheat 出了 abstract，其它的能实现么?
+我们 cheat 出了 lam，其它的能实现么?
 
 回忆一下前面，我们是怎么构建出这三种表达式的？
 
