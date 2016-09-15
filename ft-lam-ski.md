@@ -1,6 +1,6 @@
-        class Language repr where
-            app :: repr (a -> b) -> repr a -> repr b
-            -- More coming soon
+    class Language repr where
+        app :: repr (a -> b) -> repr a -> repr b
+        -- More coming soon
 
 考虑什么叫“变量抽象”。一个 `Next repr a b` 表示一个基于 repr 的新的表达式语言，总体的类型是 `b`，而其中有一个变量 `v` 在外部环境中被绑定，绑定的类型是 `a`。我们可以把它看作是一个有“洞”的表达式，可以填一个 a 进去。如在 `\(x :: u) -> f x 2` 中，子表达式 `(f x 2)` 可以用一个 `Next repr u v` 来表示，其中我不知道 `repr` 和 `v` 是什么，但是它们并不重要。
 
@@ -8,19 +8,19 @@
 
 我们需要有以下组合子
 
-        lam :: ... => Next repr a b -> repr (a -> b)
+    lam :: ... => Next repr a b -> repr (a -> b)
 
 既然挖洞，我们就可以对这个变量进行抽象得到一个函数 `h`。`lam { [x :: a] E } = { \x -> E }`
 
-        instance ... => Language (Next repr a)
+    instance ... => Language (Next repr a)
 
 `app` 的效果就是在 `[x :: a] E` 中的 `E` 部分工作，如 `app { [x :: a] M } { [x :: a] N } = { [x :: a] M N }`，把 `M` 和 `N` 给 `app` 到了一起。
 
-        var :: ... => Next repr a a
+    var :: ... => Next repr a a
 
 既然绑定了这个变量，我们需要能把这个变量拿到。`var = { [x] x }`
 
-        conv :: ... => repr b -> Next repr a b
+    conv :: ... => repr b -> Next repr a b
 
 如果我们在 `[x :: a] E` 中的 `E` 部分只能用 `x` 组合东西可就不好玩了。但是如果 `E` 中并没有出现 `x` 的话，似乎在环境中多出一个 `x` 不会对它有什么影响？于是我们就有了 `conv {E} = {[x :: a] E}`
 
@@ -28,11 +28,11 @@
 
 首先确定类型。我们很容(qi)易(guai)地想到：
 
-        newtype Next repr a b = Next { lam :: repr (a -> b) }
+    newtype Next repr a b = Next { lam :: repr (a -> b) }
 
 于是
 
-        abstract :: Next repr a b -> repr (a -> b)
+    abstract :: Next repr a b -> repr (a -> b)
 
 我们 cheat 出了 abstract，其它的能实现么?
 
@@ -52,24 +52,24 @@
 
 注意到 `s` `k` `i` 都可以直接 `conv` 到 `Next`。
 
-        class SKI repr where
-            app :: repr (a -> b) -> repr a -> repr b
-            s :: repr ( (a -> b -> c) -> (a -> b) -> a -> c )
-            k :: repr ( a -> b -> a )
-            i :: repr ( a -> a )
+    class SKI repr where
+        app :: repr (a -> b) -> repr a -> repr b
+        s :: repr ( (a -> b -> c) -> (a -> b) -> a -> c )
+        k :: repr ( a -> b -> a )
+        i :: repr ( a -> a )
+    
+    instance (SKI repr) => SKI (Next repr a) where
+        app f x = (s `app` f) `app` x
         
-        instance (SKI repr) => SKI (Next repr a) where
-            app f x = (s `app` f) `app` x
-            
-            s = conv s -- conv defined below
-            k = conv k
-            i = conv i
-        
-        var :: (SKI repr) => Next repr a a
-        var = Next i
-        
-        conv :: (SKI repr) => repr b -> Next repr a b
-        conv x = Next (k `app` x)
+        s = conv s -- conv defined below
+        k = conv k
+        i = conv i
+    
+    var :: (SKI repr) => Next repr a a
+    var = Next i
+    
+    conv :: (SKI repr) => repr b -> Next repr a b
+    conv x = Next (k `app` x)
 
 测试一下
 
