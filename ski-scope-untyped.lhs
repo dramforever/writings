@@ -39,35 +39,79 @@ ghci> c
 SKI 组合子演算
 -------------
 
-我们来看看 SKI 组合子演算吧。我们定义三个奇怪的函数
+我们考虑这么一件事：将无类型的 Lambda Calculus 翻译成几个有限的组合子的函数应用。设翻译过程为 `T(e)`，则需要考虑这些情况
 
-```haskell
-s f g x = f x (g x)
-k x y = x
-i x = x
+```
+T(a b) = ?
+T(\x -> e) = ?
 ```
 
-这又有什么用呢？我们考虑这件事：定义 `[x] e` 为用 `s` `k` `i` 翻译一个匿名函数 `\x -> e`。计算 `[x] e` 的具体过程如下：
+第一个很好填
+
+```
+T(a b) = T(a) T(b)
+```
+
+第二个的话好像有点难办。既然需要函数，我们换个角度，从函数上下文中考虑：
+
+定义 `[x] e` 为函数 `\x -> e` 的组合子表示形式，我们考虑这些情况：
+
+```
+[x] x = ?
+[x] v = ? -- v 不是 x
+[x] (\y -> e) = ?
+[x] (a b) = ?
+```
+
+然后发现居然是 lambda 情况好写
+
+```
+[x] x = ?
+[x] v = ? -- v 不是 x
+[x] (a b) = ?
+[x] (\y -> e) = [x] ([y] e) -- 我们删去了一个 lambda，所以递归一定终止
+```
+
+其它的话，就要引入组合子了啊。过程显然是要递归的，先人经过一些尝试后，发现这么递归是好的：
+
+```
+[x] x = ?
+[x] v = ? v
+[x] (a b) = ? ([x] a) ([x] b)
+```
+
+只要给三个组合子起名字就好了
 
 ```
 [x] x = i
-[x] u = k u -- 当 u 中不含未被 lambda 绑定的 x
-[x] (\u -> e) = [x] ([u] e)
+[x] v = k v
 [x] (a b) = s ([x] a) ([x] b)
 ```
 
-那个……你信不信吧……
+定义为
 
-首先我们确定这三种情况的翻译都是对的。只要将定义带入即可知道确实是这样。其次这几条涵盖了 Lambda Calculus 的全部情况，根据 Lambda Calculus 定义就好了。对于匿名函数的处理，左边表达式里有一个 lambda，但是右边把它吃了，所以右侧返回的匿名函数都严格短于左边的整个表达式 `(\u -> e)`，保证了过程可以终止。
+```
+i x = x
+k x y = x
+s f g x = f x (g x)
+```
 
-dram 发出了 Q.E.D.「495年の波纹」（划掉）
+验证可知这样的翻译是对的。
+
+我们完成的事情：将无类型的 Lambda Calculus 翻译成 SKI 组合子的函数应用。翻译后没有 lambda 了。so，
+
+**我们成功地将整个无类型 Lambda Calculus 里的 lambda 翻译到不用到 lambda 的 SKI 组合子。**
+
+不是 lambda 的非常好办，所以：
 
 **我们成功地将整个无类型 Lambda Calculus 翻译到不用到 lambda 的 SKI 组合子。**
 
-想了解更多的话可以参阅[维基百科 SKI combinator calculus
-](https://en.wikipedia.org/wiki/SKI_combinator_calculus)
+好办到什么程度呢？下文中我们不管它。
 
-说真的，其实你只要理解这个翻译是在做什么就可以了，没必要扣细节，因为细节我们这里不会用到。后面再说。
+想了解更多的话可以参阅[维基百科 SKI combinator calculus
+](https://en.wikipedia.org/wiki/SKI_combinator_calculus) 和 [Combinatory logic](https://en.wikipedia.org/wiki/Combinatory_logic#Completeness_of_the_S-K_basis)
+
+说真的，其实你只要理解这个翻译是在做什么就可以了，没必要扣细节，因为细节我们这里不会直接用到。后面再说。
 
 举个例子吧
 
